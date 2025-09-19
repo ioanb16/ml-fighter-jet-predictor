@@ -10,13 +10,17 @@ from project import (
     assign_mission_rating,
     get_aircraft_data,
     get_target_data,
-    get_weather_data
+    get_weather_data,
+    get_time_data
 )
+
 
 # Test function to verify imports work
 def test_imports():
     """Test that all imports from original system work"""
     print("Testing imports from original system...")
+    time_periods = get_time_data()
+    print(f"Time periods loaded: {len(time_periods)} time slots")
     
     # Test getting data
     aircraft = get_aircraft_data()
