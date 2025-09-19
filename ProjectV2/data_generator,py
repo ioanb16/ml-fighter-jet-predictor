@@ -1,0 +1,107 @@
+import pandas as pd
+import numpy as np
+import itertools
+from utils import (
+    calculate_mission_score,
+    assign_mission_rating,
+    get_aircraft_data,
+    get_target_data,
+    get_weather_data,
+    get_time_data
+)
+
+def generate_all_combinations():
+    """
+    Generate every possible combination of mission parameters
+    
+    Returns:
+        list of tuples: (aircraft, target, weather, time_of_day)
+    """
+    
+    # Get all possible options
+    aircraft_list = list(get_aircraft_data().keys())
+    target_list = list(get_target_data().keys())
+    weather_list = list(get_weather_data().keys())
+    time_list = list(get_time_data().keys())
+    
+    print(f"Aircraft: {len(aircraft_list)}")
+    print(f"Targets: {len(target_list)}")
+    print(f"Weather: {len(weather_list)}")
+    print(f"Time periods: {len(time_list)}")
+    
+    # Calculate total combinations
+    total = len(aircraft_list) * len(target_list) * len(weather_list) * len(time_list)
+    print(f"Total possible combinations: {total}")
+    
+    # Generate all combinations
+    combinations = list(itertools.product(aircraft_list, target_list, weather_list, time_list))
+    
+    return combinations
+
+def generate_training_data(num_samples=None, add_noise=False):
+    """
+    Generate training dataset from rule-based system
+    
+    Args:
+        num_samples: Number of samples to generate (None = all combinations)
+        add_noise: Whether to add realistic variation to outputs
+        
+    Returns:
+        pandas DataFrame with features and targets
+    """
+    
+    # Get all possible combinations
+    combinations = generate_all_combinations()
+    
+    # Limit samples if requested
+    if num_samples and num_samples < len(combinations):
+        combinations = combinations[:num_samples]
+        print(f"Using first {num_samples} combinations")
+    
+    print(f"Generating training data for {len(combinations)} scenarios...")
+    
+    # Store results
+    data_rows = []
+    
+    for i, (aircraft, target, weather, time_of_day) in enumerate(combinations):
+        # Get predictions from rule-based system
+        dest_prob, civ_risk = calculate_mission_score(aircraft, target, weather, time_of_day)
+        rating = assign_mission_rating(dest_prob, civ_risk)
+        
+        # Create training example
+        row = {
+            'aircraft': aircraft,
+            'target': target, 
+            'weather': weather,
+            'time_of_day': time_of_day,
+            'destruction_probability': dest_prob,
+            'civilian_risk': civ_risk,
+            'mission_rating': rating
+        }
+        
+        data_rows.append(row)
+        
+        # Progress indicator
+        if (i + 1) % 100 == 0:
+            print(f"Processed {i + 1}/{len(combinations)} combinations")
+    
+    # Convert to DataFrame
+    df = pd.DataFrame(data_rows)
+    print(f"Generated dataset with {len(df)} rows and {len(df.columns)} columns")
+    
+    return df
+
+def save_dataset(df, filename="training_data.csv"):
+        """Save the dataset to CSV file"""
+        df.to_csv(filename, index=False)
+        print(f"Dataset saved to {filename}")
+        return filename
+
+
+if __name__ == "__main__":
+    df = generate_training_data(num_samples=50)
+    print("\nDataset preview:")
+    print(df.head())
+        
+    # Save for later use
+    save_dataset(df, "sample_training_data.csv")
