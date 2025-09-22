@@ -92,16 +92,24 @@ def generate_training_data(num_samples=None, add_noise=False):
     return df
 
 def save_dataset(df, filename="training_data.csv"):
-        """Save the dataset to CSV file"""
-        df.to_csv(filename, index=False)
-        print(f"Dataset saved to {filename}")
-        return filename
+    """Save the dataset to CSV file"""
+    df.to_csv(filename, index=False)
+    print(f"Dataset saved to {filename}")
+    return filename
 
 
 if __name__ == "__main__":
-    df = generate_training_data(num_samples=50)
+    # Generate full dataset instead of just 50 samples
+    print("Generating COMPLETE training dataset...")
+    df = generate_training_data()  # No num_samples limit = all 1,890 combinations
+    
     print("\nDataset preview:")
     print(df.head())
-        
-    # Save for later use
-    save_dataset(df, "sample_training_data.csv")
+    
+    print("\nDataset summary:")
+    print(f"Total samples: {len(df)}")
+    print("\nMission rating distribution:")
+    print(df['mission_rating'].value_counts().sort_index())
+    
+    # Save the complete dataset
+    save_dataset(df, "complete_training_data.csv")

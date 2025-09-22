@@ -8,7 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import mean_squared_error, accuracy_score, classification_report
 
-def load_training_data(filename="sample_training_data.csv"):
+def load_training_data(filename="complete_training_data.csv"):  # Changed filename
     """
     Load the training dataset we generated
     
@@ -19,6 +19,11 @@ def load_training_data(filename="sample_training_data.csv"):
     df = pd.read_csv(filename)
     print(f"Loaded {len(df)} training examples")
     print(f"Columns: {list(df.columns)}")
+    
+    # Show rating distribution
+    print("\nMission rating distribution:")
+    print(df['mission_rating'].value_counts().sort_index())
+    
     return df
 
 def prepare_features(df):
