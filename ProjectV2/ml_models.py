@@ -5,6 +5,8 @@ from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, accuracy_score
 from sklearn.preprocessing import LabelEncoder
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.metrics import mean_squared_error, accuracy_score, classification_report
 
 def load_training_data(filename="sample_training_data.csv"):
     """
@@ -151,6 +153,56 @@ def train_regression_models(X, y_dest, y_civ):
     return results
 
 
+
+def train_classification_models(X, y_rating):
+    """
+    Train classification models to predict mission ratings
+    
+    Args:
+        X: Feature matrix
+        y_rating: Mission rating targets (S-RANK, A-RANK, etc.)
+        
+    Returns:
+        Dictionary of trained models and their performance
+    """
+    
+    print("Training classification models...")
+    
+    # Split data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y_rating, test_size=0.2, random_state=42
+    )
+    
+    # Models to train
+    models = {
+        'Logistic Regression': LogisticRegression(random_state=42, max_iter=1000),
+        'Random Forest': RandomForestClassifier(n_estimators=100, random_state=42)
+    }
+    
+    results = {}
+    
+    print("\nMission Rating Classification:")
+    for name, model in models.items():
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        accuracy = accuracy_score(y_test, y_pred)
+        
+        results[name] = {
+            'model': model,
+            'accuracy': accuracy,
+            'predictions': y_pred,
+            'actual': y_test
+        }
+        
+        print(f"{name:18} - Accuracy: {accuracy:.3f}")
+        
+        # Show detailed classification report
+        print(f"\n{name} Classification Report:")
+        print(classification_report(y_test, y_pred))
+    
+    return results
+
+
 if __name__ == "__main__":
     # Load the data
     df = load_training_data()
@@ -163,3 +215,6 @@ if __name__ == "__main__":
     
     # Train regression models
     regression_results = train_regression_models(X, y_dest, y_civ)
+    
+    # Train classification models
+    classification_results = train_classification_models(X, y_rating)
