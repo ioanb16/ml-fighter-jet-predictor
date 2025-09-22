@@ -85,6 +85,72 @@ def prepare_features(df):
     return X, y_dest, y_civ, y_rating
 
 
+
+
+def train_regression_models(X, y_dest, y_civ):
+    """
+    Train regression models to predict destruction probability and civilian risk
+    
+    Args:
+        X: Feature matrix
+        y_dest: Destruction probability targets
+        y_civ: Civilian risk targets
+        
+    Returns:
+        Dictionary of trained models and their performance
+    """
+    
+    print("Training regression models...")
+    
+    # Split data into training and testing sets
+    X_train, X_test, y_dest_train, y_dest_test, y_civ_train, y_civ_test = train_test_split(
+        X, y_dest, y_civ, test_size=0.2, random_state=42
+    )
+    
+    # Models to train
+    models = {
+        'Linear Regression': LinearRegression(),
+        'Random Forest': RandomForestRegressor(n_estimators=100, random_state=42)
+    }
+    
+    results = {}
+    
+    # Train models for destruction probability
+    print("\nDestruction Probability Prediction:")
+    for name, model in models.items():
+        model.fit(X_train, y_dest_train)
+        y_pred = model.predict(X_test)
+        rmse = np.sqrt(mean_squared_error(y_dest_test, y_pred))
+        score = model.score(X_test, y_dest_test)
+        
+        results[f'{name}_destruction'] = {
+            'model': model,
+            'rmse': rmse,
+            'r2_score': score
+        }
+        
+        print(f"{name:15} - RMSE: {rmse:.2f}%, R² Score: {score:.3f}")
+    
+    # Train models for civilian risk
+    print("\nCivilian Risk Prediction:")
+    for name, base_model in models.items():
+        model = type(base_model)(**base_model.get_params()) if hasattr(base_model, 'get_params') else type(base_model)()
+        model.fit(X_train, y_civ_train)
+        y_pred = model.predict(X_test)
+        rmse = np.sqrt(mean_squared_error(y_civ_test, y_pred))
+        score = model.score(X_test, y_civ_test)
+        
+        results[f'{name}_civilian'] = {
+            'model': model,
+            'rmse': rmse,
+            'r2_score': score
+        }
+        
+        print(f"{name:15} - RMSE: {rmse:.2f}%, R² Score: {score:.3f}")
+    
+    return results
+
+
 if __name__ == "__main__":
     # Load the data
     df = load_training_data()
@@ -94,5 +160,6 @@ if __name__ == "__main__":
     # Convert to numerical features
     X, y_dest, y_civ, y_rating = prepare_features(df)
     print(f"\nFeature matrix shape: {X.shape}")
-    print("First few feature rows:")
-    print(X[:3])
+    
+    # Train regression models
+    regression_results = train_regression_models(X, y_dest, y_civ)
